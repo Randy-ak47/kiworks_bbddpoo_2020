@@ -11,6 +11,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
@@ -47,7 +52,6 @@ public class CamionChofer extends javax.swing.JFrame {
         //PLACEHOLDERS
         PlaceHolder holder;
         holder = new PlaceHolder(txtId, "Ingresar ID");
-        holder = new PlaceHolder(txtFecha, "Ingresar Fecha");
         holder = new PlaceHolder(txtBuscar, "Ingresar Búsqueda");
     }
 
@@ -65,7 +69,6 @@ public class CamionChofer extends javax.swing.JFrame {
         tblCamionChofer = new javax.swing.JTable();
         pChoferes = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
-        txtFecha = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
@@ -77,6 +80,7 @@ public class CamionChofer extends javax.swing.JFrame {
         btnNuevo = new javax.swing.JButton();
         cmbNifChofer = new javax.swing.JComboBox<>();
         cmbMatricula = new javax.swing.JComboBox<>();
+        jDateChooser1 = new com.toedter.calendar.JDateChooser();
         jPanel1 = new javax.swing.JPanel();
         jLabel8 = new javax.swing.JLabel();
         txtBuscar = new javax.swing.JTextField();
@@ -190,17 +194,17 @@ public class CamionChofer extends javax.swing.JFrame {
                         .addGap(8, 8, 8)
                         .addComponent(btnNuevo)))
                 .addGap(20, 20, 20)
-                .addGroup(pChoferesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(txtFecha, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txtId, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pChoferesLayout.createSequentialGroup()
+                .addGroup(pChoferesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jDateChooser1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(txtId)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pChoferesLayout.createSequentialGroup()
                         .addComponent(btnLimpiar)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btnEditar)
                         .addGap(18, 18, 18)
                         .addComponent(btnEliminar))
-                    .addComponent(cmbNifChofer, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(cmbMatricula, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(cmbNifChofer, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(cmbMatricula, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnGuardar)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -220,11 +224,11 @@ public class CamionChofer extends javax.swing.JFrame {
                 .addGroup(pChoferesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(cmbMatricula, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(16, 16, 16)
-                .addGroup(pChoferesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(pChoferesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel3)
-                    .addComponent(txtFecha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 155, Short.MAX_VALUE)
+                    .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 159, Short.MAX_VALUE)
                 .addGroup(pChoferesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnLimpiar)
                     .addComponent(btnEditar)
@@ -303,12 +307,15 @@ public class CamionChofer extends javax.swing.JFrame {
         try {
             String SQL = "insert into camion_chofer (NIF_Chofer, Matricula, Fecha, ID_Camion_Chofer) values (?,?,?,?)";
             PreparedStatement pst = con.prepareStatement(SQL);
-            pst.setString(4, txtId.getText());
             int nifChofer = cmbNifChofer.getSelectedIndex();
             pst.setString(1, cmbNifChofer.getItemAt(nifChofer));
             int matricula = cmbMatricula.getSelectedIndex();
             pst.setString(2, cmbMatricula.getItemAt(matricula));
-            pst.setString(3, txtFecha.getText());
+            Date fecha = jDateChooser1.getDate();
+            SimpleDateFormat formato = new SimpleDateFormat("yyyy/MM/dd");
+            pst.setString(3, formato.format(fecha));
+            //pst.setString(3, txtFecha.getText());
+            pst.setString(4, txtId.getText());
             pst.execute();
             JOptionPane.showMessageDialog(null, "Registro Nuevo");
         } catch (Exception e) {
@@ -320,8 +327,8 @@ public class CamionChofer extends javax.swing.JFrame {
         try {
             int fila = tblCamionChofer.getSelectedRow();
             if (fila > 0) {
-                String dao = (String) tblCamionChofer.getValueAt(fila, 0);
-                String SQL = "delete from camion_chofer where ID_Camion_Chofer = " + dao;
+                String dao = (String) tblCamionChofer.getValueAt(fila, 3);
+                String SQL = "delete from camion_chofer where ID_Camion_Chofer = '" + dao +"';";
                 Statement st = con.createStatement();
                 int n = st.executeUpdate(SQL);
                 JOptionPane.showMessageDialog(null, "Registro eliminado");
@@ -329,7 +336,7 @@ public class CamionChofer extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "Registro NO Seleccionado");
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Error en al eliminar " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error al eliminar " + e.getMessage());
         }
     }
 
@@ -345,7 +352,10 @@ public class CamionChofer extends javax.swing.JFrame {
                 pst.setString(1, cmbNifChofer.getItemAt(nifChofer));
                 int matricula = cmbMatricula.getSelectedIndex();
                 pst.setString(2, cmbMatricula.getItemAt(matricula));
-                pst.setString(3, txtFecha.getText());
+                Date fecha = jDateChooser1.getDate();
+                SimpleDateFormat formato = new SimpleDateFormat("yyyy/MM/dd");
+                pst.setString(3, formato.format(fecha));
+                //pst.setString(3, txtFecha.getText());
                 pst.setString(4, dao);
                 pst.execute();
                 JOptionPane.showMessageDialog(null, "Registro actualizado");
@@ -356,7 +366,10 @@ public class CamionChofer extends javax.swing.JFrame {
                 pst.setString(1, cmbNifChofer.getItemAt(nifChofer));
                 int matricula = cmbMatricula.getSelectedIndex();
                 pst.setString(2, cmbMatricula.getItemAt(matricula));
-                pst.setString(3, txtFecha.getText());
+                Date fecha = jDateChooser1.getDate();
+                SimpleDateFormat formato = new SimpleDateFormat("yyyy/MM/dd");
+                pst.setString(3, formato.format(fecha));
+                //pst.setString(3, txtFecha.getText());
                 pst.execute();
                 JOptionPane.showMessageDialog(null, "Registro actualizado");
             } else {
@@ -370,7 +383,7 @@ public class CamionChofer extends javax.swing.JFrame {
     public void limpiarDatos() {
         cmbNifChofer.setSelectedItem(null);
         cmbMatricula.setSelectedItem(null);
-        txtFecha.setText("");
+        jDateChooser1.setCalendar(null);
     }
 
     public void mostrarDatos() {
@@ -475,7 +488,17 @@ public class CamionChofer extends javax.swing.JFrame {
         txtId.setText(tblCamionChofer.getValueAt(filaSelect, 3).toString());
         cmbNifChofer.setSelectedItem(tblCamionChofer.getValueAt(filaSelect, 0).toString());
         cmbMatricula.setSelectedItem(tblCamionChofer.getValueAt(filaSelect, 1).toString());
-        txtFecha.setText(tblCamionChofer.getValueAt(filaSelect, 2).toString());
+       
+        SimpleDateFormat formato = new SimpleDateFormat("yyyy-MM-dd");
+        
+        try {
+            Date fecha = formato.parse(tblCamionChofer.getValueAt(filaSelect, 2).toString());
+            jDateChooser1.setDate(fecha);
+        } catch (ParseException ex) {
+            Logger.getLogger(CamionChofer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        //txtFecha.setText(tblCamionChofer.getValueAt(filaSelect, 2).toString());
         btnGuardar.setEnabled(false);
     }//GEN-LAST:event_tblCamionChoferMouseClicked
 
@@ -577,6 +600,7 @@ public class CamionChofer extends javax.swing.JFrame {
     private javax.swing.JButton btnNuevo;
     private javax.swing.JComboBox<String> cmbMatricula;
     private javax.swing.JComboBox<String> cmbNifChofer;
+    private com.toedter.calendar.JDateChooser jDateChooser1;
     private javax.swing.JFormattedTextField jFormattedTextField1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -588,7 +612,6 @@ public class CamionChofer extends javax.swing.JFrame {
     private javax.swing.JPanel pChoferes;
     private javax.swing.JTable tblCamionChofer;
     private javax.swing.JTextField txtBuscar;
-    private javax.swing.JTextField txtFecha;
     private javax.swing.JTextField txtId;
     // End of variables declaration//GEN-END:variables
 
